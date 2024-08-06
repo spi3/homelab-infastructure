@@ -1,5 +1,5 @@
 - name: Reboot hosts
-  hosts: cluster
+  hosts: all
   gather_facts: false
   tasks: 
     - name: Reboot
