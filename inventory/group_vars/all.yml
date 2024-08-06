@@ -60,3 +60,6 @@ deployments:
   - name: prometheus
     type: cmd
     command: "sh {{ kubernetes_config_repo }}/prometheus/deploy.sh"
+  - name: portainer
+    type: cmd
+    command: "sh {{ kubernetes_config_repo }}/portainer/deploy.sh"
