@@ -1,0 +1,7 @@
+- name: Reboot hosts
+  hosts: all
+  gather_facts: false
+  tasks: 
+    - name: Shutdown
+      become: true
+      community.general.shutdown:
