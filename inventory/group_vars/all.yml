@@ -37,6 +37,8 @@ main_interface_name: kubelan
 assign_ip: false
 
 deployments:
+  - name: secrets 
+    command: "kubectl apply -f {{ kubernetes_config_repo }}/secrets.yaml"
   - name: pihole
     type: yaml
     command: "kubectl apply -f {{ kubernetes_config_repo }}/pihole"
@@ -57,9 +59,14 @@ deployments:
     type: yaml
     command: "kubectl apply -f {{ kubernetes_config_repo }}/home_assistant"
     dir: "{{ kubernetes_config_repo }}/home_assistant"
-  - name: prometheus
-    type: cmd
-    command: "sh {{ kubernetes_config_repo }}/prometheus/deploy.sh"
   - name: portainer
     type: cmd
     command: "sh {{ kubernetes_config_repo }}/portainer/deploy.sh"
+  - name: vaultwarden
+    type: yaml
+    command: "kubectl apply -f {{ kubernetes_config_repo }}/vaultwarden"
+    dir: "{{ kubernetes_config_repo }}/vaultwarden"
+  - name: mosquitto
+    type: yaml
+    command: "kubectl apply -f {{ kubernetes_config_repo }}/mosquitto"
+    dir: "{{ kubernetes_config_repo }}/mosquitto"
