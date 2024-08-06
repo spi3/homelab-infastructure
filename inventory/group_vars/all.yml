@@ -3,3 +3,8 @@ ansible_user: "{{ master_user }}"
 ansinble_ssh_user: "{{ master_user }}"
 ansible_ssh_pass: "{{ master_pw }}"
 ansible_become_pass: "{{ master_pw }}"
+
+nfs_host: 10.0.0.2
+mariadb_host: 10.10.10.102
+
+kubernetes_config_repo: "/mnt/kubernetes/Kubernetes-Configs"

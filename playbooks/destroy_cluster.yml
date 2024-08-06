@@ -1,0 +1,15 @@
+- name: Uninstall agents
+  hosts: kubernetes_agents
+  become: true
+  tasks: 
+    - name: Uninstall agent
+      command: /usr/local/bin/k3s-agent-uninstall.sh
+      ignore_errors: true
+
+- name: Uninstall master
+  hosts: kubernetes_master
+  become: true
+  tasks:
+    - name: Uninstall master
+      command: /usr/local/bin/k3s-uninstall.sh
+      ignore_errors: true

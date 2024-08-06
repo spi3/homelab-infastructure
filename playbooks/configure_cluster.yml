@@ -3,6 +3,29 @@
 - name: Get info from master
   hosts: kubernetes_master
   tasks:
+    - name: Install master if not already running
+      become: true
+      ansible.builtin.shell: "curl -sfL https://get.k3s.io | sh -s - \
+          --flannel-backend=none \
+          --cluster-cidr=10.200.0.0/16 \
+          --disable-network-policy \
+          --disable=traefik \
+          --disable=servicelb"
+
+    - name: Copy config
+      become: true
+      ansible.builtin.copy: 
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: /mnt/kubernetes
+        mode: '0644'
+        remote_src: true
+
+    - name: Edit config
+      ansible.builtin.replace:
+        path: /mnt/kubernetes/k3s.yaml
+        regexp: "https://127.0.0.1"
+        replace: "https://{{ ansible_host }}"
+
     - name: Get node key
       become: true
       ansible.builtin.slurp:
@@ -89,7 +112,38 @@
         shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars['kube']['ansible_host'] }}:6443 K3S_TOKEN={{ hostvars['kube']['node_key'] }} sh -"
       when: hostvars['kube']['node_status'][inventory_hostname] is not defined or hostvars['kube']['node_status'][inventory_hostname] != 'Ready'
     
-# - name: Configure deployments
-#   hosts: kubernetes_master
-#   become: true
-#   tasks: 
+- name: Configure deployments
+  hosts: kubernetes_master
+  become: true
+  tasks: 
+    - name: Deploy calcio 
+      command: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml
+    
+    - name: Deploy calcio config
+      command: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/custom-resources.yaml
+
+    - name: Apply secrets
+      command: "kubectl apply -f {{ kubernetes_config_repo }}/secrets.yaml"
+
+    - name: Deploy NFS provisioner
+      shell: "sh {{ kubernetes_config_repo }}/nfs_provisioner/deploy.sh"
+    - name: Deploy NFS provisioner
+      command: "kubectl apply -f {{ kubernetes_config_repo }}/nfs_provisioner/storage_class.yaml"
+
+    - name: Deploy MetalLB
+      command: "kubectl apply -f {{ kubernetes_config_repo }}/metallb/metallb-native.yaml"
+    - ansible.builtin.pause: 
+        seconds: 5
+    - command: "kubectl apply -f {{ kubernetes_config_repo }}/metallb/custom_resources.yaml"
+
+    - name: Deploy pihole
+      command: "kubectl apply -f {{ kubernetes_config_repo }}/pihole"
+
+    - name: Deploy dashy
+      command: "kubectl apply -f {{ kubernetes_config_repo }}/dashy"
+
+    - name: Deploy cloudflare_tunnel
+      command: "kubectl apply -f {{ kubernetes_config_repo }}/cloudflare_tunnel"
+
+    - name: Deploy duckdns
+      command: "kubectl apply -f {{ kubernetes_config_repo }}/duckdns"
