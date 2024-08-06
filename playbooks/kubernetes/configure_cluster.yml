@@ -13,25 +13,10 @@
           - curl
           - iptables
           - docker
+          - bridge-utils
 
-    - include_role:
-        name: common/setup_main_interface
-
-    - include_role:
-        name: common/create_vlan_interface
-      loop: "{{ vlan_interfaces }}"
-      loop_control:
-        loop_var: vlan_to_create
-
-    - include_role:
-        name: common/assign_vlan_interface
-      loop: "{{ vlan_interfaces }}"
-      loop_control:
-        loop_var: vlan_to_assign
-
-    - name: Enable VLANs
-      become: true
-      ansible.builtin.command: ifup -a
+- name: Configure Interfaces
+  import_playbook: configure_interfaces.yml
 
 - name: Configure Raspberry Pis
   import_playbook: configure_raspberry_pis.yml
@@ -44,3 +29,4 @@
 
 - name: Configure Deployments
   import_playbook: configure_deployments.yml
+

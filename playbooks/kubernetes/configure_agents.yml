@@ -1,16 +1,67 @@
+- name: Setup Master 
+  hosts: master
+  become: true
+  tasks:
+    - name: Get node key
+      ansible.builtin.slurp:
+        src: /var/lib/rancher/k3s/server/node-token
+      register: node_key
+
+    - set_fact:
+        node_key: "{{ node_key.content | b64decode | replace('\n', '') }}"
+
+    - name: Get nodes status
+      ansible.builtin.command: kubectl get nodes --no-headers=true
+      register: _node_statuses
+
+    - set_fact:
+        _node_statuses: "{{ _node_statuses.stdout_lines }}"
+
+    - set_fact:
+        node_status: "{{node_status|default({}) | combine({ item|regex_search('^(\\w+)') : item|regex_search('(\\w*Ready)')}) }}"
+      loop: "{{ _node_statuses }}"
+
 - name: Configure nodes
   hosts: agents
   become: true
   tasks:
-    # - name: Delete old cni conf
-    #   ansible.builtin.file: 
-    #     path: /etc/cni/net.d
-    #     state: absent
 
-    # - name: Delete old cni bin
-    #   ansible.builtin.file: 
-    #     path: /opt/cni/bin
-    #     state: absent
+    - name: Register agent
+      block:
+        - name: Remove the agent
+          shell: "/usr/local/bin/k3s-agent-uninstall.sh"
+          ignore_errors: yes
+        - name: Initialize the agent
+          shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars['kube']['ansible_host'] }}:6443 K3S_TOKEN={{ hostvars['kube']['node_key'] }} sh -"
+      when: hostvars['kube']['node_status'][inventory_hostname] is not defined or hostvars['kube']['node_status'][inventory_hostname] != 'Ready'
+
+    - name: Wait for CNI
+      ansible.builtin.wait_for:
+        path: /var/lib/rancher/k3s/agent/etc/cni/net.d
+
+    - name: Wait for CNI
+      ansible.builtin.wait_for:
+        path: /var/lib/rancher/k3s/data/current/bin
+
+    - name: Creat CNI dirs
+      ansible.builtin.file:
+        path: /etc/cni/
+        state: absent
+
+    - name: Creat CNI dirs
+      ansible.builtin.file:
+        path: /opt/cni/
+        state: absent
+
+    - name: Creat CNI dirs
+      ansible.builtin.file:
+        path: /etc/cni/
+        state: directory
+
+    - name: Creat CNI dirs
+      ansible.builtin.file:
+        path: /opt/cni/
+        state: directory
 
     - name: Create CNI link
       ansible.builtin.file:
@@ -25,15 +76,6 @@
         src: /var/lib/rancher/k3s/data/current/bin
         state: link
         force: true
-
-    - name: Register agent
-      block:
-        - name: Remove the agent
-          shell: "/usr/local/bin/k3s-agent-uninstall.sh"
-          ignore_errors: yes
-        - name: Initialize the agent
-          shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars['kube']['ansible_host'] }}:6443 K3S_TOKEN={{ hostvars['kube']['node_key'] }} sh -"
-      when: hostvars['kube']['node_status'][inventory_hostname] is not defined or hostvars['kube']['node_status'][inventory_hostname] != 'Ready'
 
     - name: Wait for cni dir
       ansible.builtin.wait_for:

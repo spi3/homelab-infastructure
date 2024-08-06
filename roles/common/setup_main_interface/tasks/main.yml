@@ -22,14 +22,12 @@
     dest: "/etc/network/interfaces"
     mode: 0640
 
-- name: Restart networking
-  ansible.builtin.service:
-    name: networking
-    state: restarted
-  when: assign_ip
+# - name: Restart networking
+#   ansible.builtin.service:
+#     name: networking
+#     state: restarted
+#   when: assign_ip
 
-- set_fact:
-    ansible_host: "{{ target_host_ip }}"
-  when: assign_ip
-
-- reboot:
+# - set_fact:
+#     ansible_host: "{{ target_host_ip }}"
+#   when: assign_ip

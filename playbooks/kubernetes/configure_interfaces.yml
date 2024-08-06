@@ -1,0 +1,21 @@
+  ---
+- name: Configure Interfaces
+  hosts: cluster
+  become: true
+  tasks:
+    - include_role:
+        name: common/setup_main_interface
+
+    - include_role:
+        name: common/create_vlan_interface
+      loop: "{{ vlan_interfaces }}"
+      loop_control:
+        loop_var: vlan_to_create
+
+    - include_role:
+        name: common/assign_vlan_interface
+      loop: "{{ vlan_interfaces }}"
+      loop_control:
+        loop_var: vlan_to_assign
+    
+    - reboot:

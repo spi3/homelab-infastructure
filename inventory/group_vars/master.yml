@@ -1,13 +1,13 @@
 vlan_interfaces:
   - vlan_id: 3
     type: assign
-    mac: BC:24:11:FC:83:36
+    mac: BC:24:11:D5:AB:4B
   - vlan_id: 4
     type: assign
-    mac: BC:24:11:11:96:12
+    mac: BC:24:11:44:39:37
   - vlan_id: 6
     type: assign
-    mac: BC:24:11:3E:B0:E6
+    mac: BC:24:11:8B:CA:2B
   - vlan_id: 7
     type: assign
-    mac: BC:24:11:EF:37:12
+    mac: BC:24:11:E6:83:53

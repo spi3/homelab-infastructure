@@ -30,8 +30,8 @@
     - name: Deploy teamspeak
       command: "kubectl apply -f {{ kubernetes_config_repo }}/teamspeak"
 
-    - name: Deploy uptime kuma
-      command: "kubectl apply -f {{ kubernetes_config_repo }}/uptimekuma"
+    # - name: Deploy uptime kuma
+    #   command: "kubectl apply -f {{ kubernetes_config_repo }}/uptimekuma"
 
     - name: Deploy gitea
       command: "kubectl apply -f {{ kubernetes_config_repo }}/gitea"
