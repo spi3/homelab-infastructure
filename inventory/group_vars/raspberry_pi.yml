@@ -1,5 +1,2 @@
 ---
-
-manual_interfaces: true
-
 cmdline_file_path: /boot/firmware/cmdline.txt

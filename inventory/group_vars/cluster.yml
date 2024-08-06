@@ -5,6 +5,7 @@ ansible_ssh_pass: "{{ master_pw }}"
 ansible_become_pass: "{{ master_pw }}"
 
 vlan_ids:
+  - 3
   - 4
   - 6
   - 7

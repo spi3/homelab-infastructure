@@ -4,8 +4,6 @@ ansinble_ssh_user: "{{ master_user }}"
 ansible_ssh_pass: "{{ master_pw }}"
 ansible_become_pass: "{{ master_pw }}"
 
-manual_interfaces: false
-
 nfs_host: 10.0.0.2
 mariadb_host: 10.10.10.102
 default_gateway: 10.122.122.1
@@ -16,6 +14,10 @@ default_dns2: 8.8.8.8
 kubernetes_config_repo: "/mnt/kubernetes/Kubernetes-Configs"
 
 vlans:
+  3:
+    vlan_name: iot
+    vlan_subnet: 192.168.3.0/24
+    vlan_gateway: 192.168.3.1
   4:
     vlan_name: services
     vlan_subnet: 10.10.10.0/24
