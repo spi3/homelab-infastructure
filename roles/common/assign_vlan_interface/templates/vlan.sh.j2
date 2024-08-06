@@ -1,0 +1,4 @@
+auto {{ vlans[vlan_to_assign.vlan_id].vlan_name }}
+iface {{ vlans[vlan_to_assign.vlan_id].vlan_name }} inet manual
+  pre-up ip link set $IFACE up
+  pre-down ip link set $IFACE down

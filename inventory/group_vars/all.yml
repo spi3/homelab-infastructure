@@ -15,18 +15,20 @@ kubernetes_config_repo: "/mnt/kubernetes/Kubernetes-Configs"
 
 vlans:
   3:
-    vlan_name: iot
+    vlan_name: iotlan
     vlan_subnet: 192.168.3.0/24
     vlan_gateway: 192.168.3.1
   4:
-    vlan_name: services
+    vlan_name: servlan
     vlan_subnet: 10.10.10.0/24
     vlan_gateway: 10.10.10.1
   6:
-    vlan_name: exposed_services
+    vlan_name: expservlan
     vlan_subnet: 10.101.101.0/24
     vlan_gateway: 10.101.101.1
   7:
-    vlan_name: teamspeak
+    vlan_name: tslan
     vlan_subnet: 10.132.132.0/24
     vlan_gateway: 10.132.132.1
+
+main_interface_name: kubelan

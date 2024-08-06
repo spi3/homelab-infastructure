@@ -6,11 +6,14 @@ ansible_become_pass: "{{ master_pw }}"
 
 vlan_interfaces:
   - vlan_id: 3
-    type: create
+    type: assign
+    mac: BC:24:11:98:8D:A2
   - vlan_id: 4
-    type: create
+    type: assign
+    mac: BC:24:11:EF:3A:90
   - vlan_id: 6
-    type: create
+    type: assign
+    mac: BC:24:11:53:4C:56
   - vlan_id: 7
-    type: create
-
+    type: assign
+    mac: BC:24:11:9E:D1:34

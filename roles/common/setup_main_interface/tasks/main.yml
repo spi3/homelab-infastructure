@@ -1,3 +1,4 @@
+---
 - name: Get interface name from provided IP
   set_fact:
     interface_name: "{{ ansible_interfaces | map('regex_replace', '^', 'ansible_') | map('extract', vars) | selectattr('ipv4', 'defined') | selectattr('ipv4.address', 'match', ansible_host) | map(attribute='device') | first }}"
@@ -9,10 +10,10 @@
 - debug:
     msg: "{{ mac_address }}"
 
-- name: Rename interface to eth0
+- name: "Rename interface to {{ main_interface_name }}"
   ansible.builtin.template:
     src: 10-eth0.link.j2
-    dest: "/etc/systemd/network/10-eth0.link"
+    dest: "/etc/systemd/network/10-{{ main_interface_name }}.link"
     mode: 0640
 
 - name: Copy template

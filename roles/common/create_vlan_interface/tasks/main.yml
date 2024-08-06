@@ -1,0 +1,20 @@
+---
+- name: Create VLAN Interfaces
+  when: vlan_to_create.type == 'create'
+  block:
+    - name: Get interface name from provided IP
+      set_fact:
+        main_interface_name: "{{ ansible_interfaces | map('regex_replace', '^', 'ansible_') | map('extract', vars) | selectattr('ipv4', 'defined') | selectattr('ipv4.address', 'match', ansible_host) | map(attribute='device') | first }}"
+
+    - name: Copy template
+      ansible.builtin.template:
+        src: vlan.sh.j2
+        dest: "/etc/network/interfaces.d/vlan{{ vlan_to_create.vlan_id }}.sh"
+        mode: 0640
+
+    - name: Make sure we source from interfaces.d
+      become: true
+      ansible.builtin.lineinfile:
+        path: /etc/network/interfaces
+        line: source /etc/network/interfaces.d/*
+

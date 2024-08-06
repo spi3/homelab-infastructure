@@ -1,6 +1,5 @@
----
 - name: Install packages
-  hosts: cluster
+  hosts: pitest
   become: true
   tasks:
     - name: Install packages
@@ -13,9 +12,7 @@
           - curl
           - iptables
           - docker
-
-    - include_role:
-        name: common/setup_main_interface
+          - bridge-utils
 
     - include_role:
         name: common/create_vlan_interface
@@ -29,18 +26,4 @@
       loop_control:
         loop_var: vlan_to_assign
 
-    - name: Enable VLANs
-      become: true
-      ansible.builtin.command: ifup -a
-
-- name: Configure Raspberry Pis
-  import_playbook: configure_raspberry_pis.yml
-
-- name: Configure Master
-  import_playbook: configure_master.yml
-
-- name: Configure Agents
-  import_playbook: configure_agents.yml
-
-- name: Configure Deployments
-  import_playbook: configure_deployments.yml
+    - reboot:

@@ -1,7 +1,7 @@
 source /etc/network/interfaces.d/*
 
-auto eth0
-iface eth0 inet static
+auto {{ main_interface_name }}
+iface {{ main_interface_name }} inet static
 {% if assign_ip %}
   address {{ target_host_ip }}
 {% else %}

@@ -1,0 +1,4 @@
+auto {{ vlans[vlan_to_create.vlan_id].vlan_name }}
+iface {{ vlans[vlan_to_create.vlan_id].vlan_name }} inet manual
+  bridge_ports {{ main_interface_name }}.{{ vlan_to_create.vlan_id }}
+  up /usr/sbin/brctl stp {{ vlans[vlan_to_create.vlan_id].vlan_name }} on

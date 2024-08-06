@@ -1,4 +1,0 @@
-auto {{ interface_name }}.{{ vlan_id }}
-iface {{ interface_name }}.{{ vlan_id }} inet manual
-  pre-up ip link set $IFACE up
-  pre-down ip link set $IFACE down

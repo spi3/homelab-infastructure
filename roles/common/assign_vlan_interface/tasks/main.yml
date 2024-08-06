@@ -1,0 +1,22 @@
+---
+
+- name: Raname Interfaces
+  when: vlan_to_assign.type == 'assign'
+  block:
+    - name: "Rename interface to {{ vlans[vlan_to_assign.vlan_id].vlan_name }}"
+      ansible.builtin.template:
+        src: 10-eth0.link.j2
+        dest: "/etc/systemd/network/10-{{ vlans[vlan_to_assign.vlan_id].vlan_name }}.link"
+        mode: 0640
+
+    - name: Copy template
+      ansible.builtin.template:
+        src: vlan.sh.j2
+        dest: "/etc/network/interfaces.d/vlan{{ vlan_to_assign.vlan_id }}.sh"
+        mode: 0640
+
+    - name: Make sure we source from interfaces.d
+      become: true
+      ansible.builtin.lineinfile:
+        path: /etc/network/interfaces
+        line: source /etc/network/interfaces.d/*
