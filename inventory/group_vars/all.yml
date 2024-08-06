@@ -6,6 +6,7 @@ ansible_become_pass: "{{ master_pw }}"
 
 nfs_host: 10.0.0.2
 mariadb_host: 10.10.10.102
+mqtt_host: 10.10.10.105
 default_gateway: 10.122.122.1
 netmask: 255.255.255.0
 default_dns1: 9.9.9.9
@@ -32,3 +33,42 @@ vlans:
     vlan_gateway: 10.132.132.1
 
 main_interface_name: kubelan
+
+assign_ip: false
+
+deployments:
+  - name: pihole
+    type: yaml
+    command: "kubectl apply -f {{ kubernetes_config_repo }}/pihole"
+    dir: "{{ kubernetes_config_repo }}/pihole"
+  - name: dashy
+    type: yaml
+    command: "kubectl apply -f {{ kubernetes_config_repo }}/dashy"
+    dir: "{{ kubernetes_config_repo }}/dashy"
+  - name: cloudflare_tunnel
+    type: yaml
+    command: "kubectl apply -f {{ kubernetes_config_repo }}/cloudflare_tunnel"
+    dir: "{{ kubernetes_config_repo }}/cloudflare_tunnel"
+  - name: duckdns
+    type: yaml
+    command: "kubectl apply -f {{ kubernetes_config_repo }}/duckdns"
+    dir: "{{ kubernetes_config_repo }}/duckdns"
+  - name: teamspeak
+    type: yaml
+    command: "kubectl apply -f {{ kubernetes_config_repo }}/teamspeak"
+    dir: "{{ kubernetes_config_repo }}/teamspeak"
+  - name: gitea
+    type: yaml
+    command: "kubectl apply -f {{ kubernetes_config_repo }}/gitea"
+    dir: "{{ kubernetes_config_repo }}/gitea"
+  - name: home_assistant
+    type: yaml
+    command: "kubectl apply -f {{ kubernetes_config_repo }}/home_assistant"
+    dir: "{{ kubernetes_config_repo }}/home_assistant"
+  - name: qbittorrent
+    type: yaml
+    command: "kubectl apply -f {{ kubernetes_config_repo }}/qbittorrent"
+    dir: "{{ kubernetes_config_repo }}/qbittorrent"
+  - name: prometheus
+    type: cmd
+    command: "sh {{ kubernetes_config_repo }}/prometheus/deploy.sh"
