@@ -1,4 +1,4 @@
-  ---
+---
 - name: Configure Interfaces
   hosts: cluster
   become: true
