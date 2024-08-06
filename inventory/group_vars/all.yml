@@ -45,18 +45,10 @@ deployments:
     type: yaml
     command: "kubectl apply -f {{ kubernetes_config_repo }}/dashy"
     dir: "{{ kubernetes_config_repo }}/dashy"
-  - name: cloudflare_tunnel
-    type: yaml
-    command: "kubectl apply -f {{ kubernetes_config_repo }}/cloudflare_tunnel"
-    dir: "{{ kubernetes_config_repo }}/cloudflare_tunnel"
   - name: duckdns
     type: yaml
     command: "kubectl apply -f {{ kubernetes_config_repo }}/duckdns"
     dir: "{{ kubernetes_config_repo }}/duckdns"
-  - name: teamspeak
-    type: yaml
-    command: "kubectl apply -f {{ kubernetes_config_repo }}/teamspeak"
-    dir: "{{ kubernetes_config_repo }}/teamspeak"
   - name: gitea
     type: yaml
     command: "kubectl apply -f {{ kubernetes_config_repo }}/gitea"
@@ -65,10 +57,6 @@ deployments:
     type: yaml
     command: "kubectl apply -f {{ kubernetes_config_repo }}/home_assistant"
     dir: "{{ kubernetes_config_repo }}/home_assistant"
-  - name: qbittorrent
-    type: yaml
-    command: "kubectl apply -f {{ kubernetes_config_repo }}/qbittorrent"
-    dir: "{{ kubernetes_config_repo }}/qbittorrent"
   - name: prometheus
     type: cmd
     command: "sh {{ kubernetes_config_repo }}/prometheus/deploy.sh"
