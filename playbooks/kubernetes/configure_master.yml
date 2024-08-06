@@ -16,8 +16,7 @@
         fstype: nfs
 
     - name: Install master if not already running
-      ansible.builtin.shell: "curl -sfL https://get.k3s.io | sh -s - \
-          --disable=servicelb"
+      ansible.builtin.shell: "curl -sfL https://get.k3s.io | sh -s -"
 
     - name: Wait for CNI
       ansible.builtin.wait_for:
