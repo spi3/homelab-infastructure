@@ -1,0 +1,18 @@
+source /etc/network/interfaces.d/*
+
+{% if manual_interfaces %}
+iface eth0 inet manual
+{% else %}
+auto eth0
+iface eth0 inet static
+{% if assign_ip %}
+  address {{ target_host_ip }}
+{% else %}
+  address {{ ansible_host }}
+{% endif %}
+  netmask {{ netmask }}
+  gateway {{ default_gateway }}
+  dns-nameserver {{ default_dns1 }} 
+  dns-nameserver {{ default_dns2 }}
+{% endif %}
+  

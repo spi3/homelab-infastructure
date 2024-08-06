@@ -1,0 +1,66 @@
+- name: Coldstart
+  hosts: localhost
+  vars_prompt:
+    - name: new_host
+      prompt: What host do you want to coldstart?
+      private: false
+  tasks: 
+    - add_host:
+        name: "{{ new_host }}"
+        group: coldstart
+
+- name: Coldstart
+  hosts: coldstart
+  become: true
+  vars_prompt:
+    - name: hostname
+      prompt: What should the hostname be?
+      private: false
+  tasks:
+    - ansible.builtin.apt:
+        update_cache: true
+        upgrade: full
+    - ansible.builtin.apt:
+        pkg:
+          - vim
+          - tmux
+          - python3
+          - sudo
+          - net-tools
+          - nfs-common
+          - resolvconf
+
+    - reboot:
+          
+    - community.general.modprobe:
+        name: 8021q
+        state: present
+
+    - ansible.builtin.hostname:
+        name: "{{ hostname }}"
+        use: "debian"
+      ignore_errors: true
+
+    - name: Check if the hostname is in the inventory
+      set_fact:
+        is_valid_host: "{{ hostname in groups['all'] }}"
+
+    - name: Get the IP address of the target host if it is valid
+      set_fact:
+        target_host_ip: "{{ hostvars[hostname]['ansible_host'] if is_valid_host else None }}"
+
+    - name: Determine if the current host IP matches the target host's IP
+      set_fact:
+        assign_ip: "{{ target_host_ip != ansible_host if target_host_ip else False }}"
+
+    - include_role:
+        name: common/setup_interface
+        
+    # - ansible.builtin.user:
+    #     name: "{{ master_kube_user }}"
+    #     password: "{{ master_pw | password_hash('sha512') }} "
+    # - ansible.builtin.user:
+    #     name: root
+    #     password: "{{ master_pw | password_hash('sha512') }}"
+
+    - reboot: 

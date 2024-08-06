@@ -1,0 +1,4 @@
+ansible_user: "{{ master_kube_user }}"
+ansinble_ssh_user: "{{ master_kube_user }}"
+ansible_ssh_pass: "{{ master_pw }}"
+ansible_become_pass: "{{ master_pw }}"

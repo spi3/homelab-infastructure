@@ -1,0 +1,12 @@
+- name: Copy template
+  become: true
+  ansible.builtin.template:
+    src: coldstartnode.sh.j2
+    dest: /tmp
+    mode: 0640
+
+- name: Run script
+  command: ./tmp/coldstartnode.sh
+
+- name: Restart
+  reboot:

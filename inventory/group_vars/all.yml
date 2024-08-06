@@ -4,8 +4,14 @@ ansinble_ssh_user: "{{ master_user }}"
 ansible_ssh_pass: "{{ master_pw }}"
 ansible_become_pass: "{{ master_pw }}"
 
+manual_interfaces: false
+
 nfs_host: 10.0.0.2
 mariadb_host: 10.10.10.102
+default_gateway: 10.0.0.1
+netmask: 255.255.255.0
+default_dns1: 9.9.9.9
+default_dns2: 8.8.8.8
 
 kubernetes_config_repo: "/mnt/kubernetes/Kubernetes-Configs"
 

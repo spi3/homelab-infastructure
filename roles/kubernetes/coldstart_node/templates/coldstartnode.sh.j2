@@ -1,0 +1,11 @@
+modprobe 8021q
+
+export IP="{{ node_new_ip }}"
+IF=/etc/network/interfaces
+echo "auto eth0" > $IF
+echo "iface eth0 inet static" >> $IF
+echo "  address $IP" >> $IF
+echo "  netmask 255.255.255.0" >> $IF
+echo "  gateway 10.0.0.1" >> $IF
+echo "  dns-nameservers 1.1.1.1 9.9.9.9" >> $IF
+echo "" >> $IF

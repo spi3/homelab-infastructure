@@ -1,0 +1,34 @@
+- name: Get interface name from provided IP
+  set_fact:
+    interface_name: "{{ ansible_interfaces | map('regex_replace', '^', 'ansible_') | map('extract', vars) | selectattr('ipv4', 'defined') | selectattr('ipv4.address', 'match', ansible_host) | map(attribute='device') | first }}"
+
+- name: Get mac address from provided IP
+  set_fact:
+    mac_address: "{{ ansible_interfaces | map('regex_replace', '^', 'ansible_') | map('extract', vars) | selectattr('ipv4', 'defined') | selectattr('ipv4.address', 'match', ansible_host) | map(attribute='macaddress') | first }}"
+
+- debug:
+    msg: "{{ mac_address }}"
+
+- name: Rename interface to eth0
+  ansible.builtin.template:
+    src: 10-eth0.link.j2
+    dest: "/etc/systemd/network/10-eth0.link"
+    mode: 0640
+
+- name: Copy template
+  ansible.builtin.template:
+    src: interfaces.j2
+    dest: "/etc/network/interfaces"
+    mode: 0640
+
+- name: Restart networking
+  ansible.builtin.service:
+    name: networking
+    state: restarted
+  when: assign_ip
+
+- set_fact:
+    ansible_host: "{{ target_host_ip }}"
+  when: assign_ip
+
+- reboot:
