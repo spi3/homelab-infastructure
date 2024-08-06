@@ -94,11 +94,11 @@
     - name: Deploy multus
       shell: "cd {{ kubernetes_config_repo }}/multus && sh deploy.sh"
 
-    - name: Deploy whereabouts
-      shell: "sh {{ kubernetes_config_repo }}/whereabouts/deploy.sh"
+    # - name: Deploy whereabouts
+    #   shell: "sh {{ kubernetes_config_repo }}/whereabouts/deploy.sh"
         
-    - name: Deploy NFS provisioner
-      shell: "sh {{ kubernetes_config_repo }}/nfs_provisioner/deploy.sh"
+    # - name: Deploy NFS provisioner
+    #   shell: "sh {{ kubernetes_config_repo }}/nfs_provisioner/deploy.sh"
 
     - name: Wait for cni dir
       ansible.builtin.wait_for:
