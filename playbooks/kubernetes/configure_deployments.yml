@@ -6,12 +6,6 @@
     #   shell: "sh {{ kubernetes_config_repo }}/cert-manager/deploy.sh"
     # - command: "kubectl apply -f {{ kubernetes_config_repo }}/cert-manager/issuer.yaml"
 
-    # - name: Deploy calcio 
-    #   command: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml
-    
-    # - name: Deploy calcio config
-    #   command: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/custom-resources.yaml
-
     # - name: Deploy MetalLB
     #   command: "kubectl apply -f {{ kubernetes_config_repo }}/metallb/metallb-native.yaml"
     # - ansible.builtin.pause: 
@@ -32,3 +26,6 @@
 
     - name: Deploy duckdns
       command: "kubectl apply -f {{ kubernetes_config_repo }}/duckdns"
+
+    - name: Deploy teamspeak
+      command: "kubectl apply -f {{ kubernetes_config_repo }}/teamspeak"
