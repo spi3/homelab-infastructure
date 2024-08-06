@@ -1,6 +1,6 @@
 ---
 - name: Configure master
-  hosts: kubernetes_master
+  hosts: master
   become: true
   tasks:
     - include_role:
@@ -8,7 +8,7 @@
       loop: "{{ vlan_ids }}"
 
 - name: Get info from master
-  hosts: kubernetes_master
+  hosts: master
   become: true
   tasks:
     - name: Install master if not already running
@@ -79,10 +79,12 @@
         - ansible.builtin.lineinfile:
             line: "{{ cmdline_file }}"
             path: /boot/cmdline.txt
+
+        - ansible.builtin.reboot:
       when: grep_result.rc == 1
 
 - name: Configure nodes
-  hosts: kubernetes_agents
+  hosts: agents
   become: true
   tasks:
     - name: Install packages
@@ -107,7 +109,7 @@
       when: hostvars['kube']['node_status'][inventory_hostname] is not defined or hostvars['kube']['node_status'][inventory_hostname] != 'Ready'
 
 - name: Login to docker
-  hosts: kubernetes_cluster
+  hosts: cluster
   become: true
   tasks:
     - name: Login to docker
