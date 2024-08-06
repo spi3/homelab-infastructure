@@ -1,0 +1,44 @@
+- name: Configure nodes
+  hosts: agents
+  become: true
+  tasks:
+    - name: Delete old cni conf
+      ansible.builtin.file: 
+        path: /etc/cni/net.d
+        state: absent
+
+    - name: Delete old cni bin
+      ansible.builtin.file: 
+        path: /opt/cni/bin
+        state: absent
+
+    - name: Create CNI link
+      ansible.builtin.file:
+        path: /etc/cni/net.d
+        src: /var/lib/rancher/k3s/agent/etc/cni/net.d
+        state: link
+        force: true
+
+    - name: Create CNI link
+      ansible.builtin.file: 
+        path: /opt/cni/bin
+        src: /var/lib/rancher/k3s/data/current/bin
+        state: link
+        force: true
+
+    - name: Register agent
+      block:
+        - name: Remove the agent
+          shell: "/usr/local/bin/k3s-agent-uninstall.sh"
+          ignore_errors: yes
+        - name: Initialize the agent
+          shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars['kube']['ansible_host'] }}:6443 K3S_TOKEN={{ hostvars['kube']['node_key'] }} sh -"
+      when: hostvars['kube']['node_status'][inventory_hostname] is not defined or hostvars['kube']['node_status'][inventory_hostname] != 'Ready'
+
+    - name: Wait for cni dir
+      ansible.builtin.wait_for:
+        path: /opt/cni/bin/
+
+    - name: Copy cni plugins
+      include_role:
+        name: kubernetes/download_cni_plugins

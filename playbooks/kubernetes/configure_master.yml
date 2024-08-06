@@ -1,0 +1,109 @@
+- name: Setup Master 
+  hosts: master
+  become: true
+  tasks:
+    - name: Install packages
+      ansible.builtin.apt:
+        pkg:
+          - git
+
+    - name: Mount the kubernetes
+      ansible.posix.mount:
+        path: /mnt/kubernetes
+        state: mounted
+        src: "{{ nfs_host }}:/mnt/user/kubernetes/"
+        opts: rw,sync,hard
+        fstype: nfs
+
+    - name: Delete old cni conf
+      ansible.builtin.file: 
+        path: /etc/cni/net.d
+        state: absent
+
+    - name: Delete old cni bin
+      ansible.builtin.file: 
+        path: /opt/cni/bin
+        state: absent
+
+    - name: Create CNI link
+      ansible.builtin.file:
+        path: /etc/cni/net.d
+        src: /var/lib/rancher/k3s/agent/etc/cni/net.d
+        state: link
+        force: true
+
+    - name: Create CNI link
+      ansible.builtin.file: 
+        path: /opt/cni/bin
+        src: /var/lib/rancher/k3s/data/current/bin
+        state: link
+        force: true
+
+    - name: Install master if not already running
+      ansible.builtin.shell: "curl -sfL https://get.k3s.io | sh -s - \
+          --disable=servicelb"
+
+    # - name: Update certs
+    #   ansible.builtin.shell: "openssl s_client -connect 127.0.0.1:6443 -showcerts < /dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > cert.crt"
+
+    - name: Wait for config
+      ansible.builtin.wait_for:
+        path: /etc/rancher/k3s/k3s.yaml
+
+    - name: Copy config
+      ansible.builtin.copy: 
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: /mnt/kubernetes/k3s.yaml
+        mode: '0644'
+        remote_src: true
+
+    - name: Edit config
+      ansible.builtin.replace:
+        path: /mnt/kubernetes/k3s.yaml
+        regexp: "https://127.0.0.1"
+        replace: "https://{{ ansible_host }}"
+
+    - name: Get node key
+      ansible.builtin.slurp:
+        src: /var/lib/rancher/k3s/server/node-token
+      register: node_key
+
+    - set_fact:
+        node_key: "{{ node_key.content | b64decode | replace('\n', '') }}"
+
+    - name: Get nodes status
+      ansible.builtin.command: kubectl get nodes --no-headers=true
+      register: _node_statuses
+
+    - set_fact:
+        _node_statuses: "{{ _node_statuses.stdout_lines }}"
+
+    - set_fact:
+        node_status: "{{node_status|default({}) | combine({ item|regex_search('^(\\w+)') : item|regex_search('(\\w*Ready)')}) }}"
+      loop: "{{ _node_statuses }}"
+
+    - name: Install helm
+      shell: "curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash"
+
+    - name: Apply secrets
+      command: "kubectl apply -f {{ kubernetes_config_repo }}/secrets.yaml"
+
+    # - name: Deploy flannel
+    #   shell: "cd {{ kubernetes_config_repo }}/flannel && sh deploy.sh"
+
+    - name: Deploy multus
+      shell: "cd {{ kubernetes_config_repo }}/multus && sh deploy.sh"
+
+    - name: Deploy whereabouts
+      shell: "sh {{ kubernetes_config_repo }}/whereabouts/deploy.sh"
+        
+    - name: Deploy NFS provisioner
+      shell: "sh {{ kubernetes_config_repo }}/nfs_provisioner/deploy.sh"
+
+    - name: Wait for cni dir
+      ansible.builtin.wait_for:
+        path: /opt/cni/bin/
+
+    - name: Copy cni plugins
+      include_role:
+        name: kubernetes/download_cni_plugins

@@ -1,0 +1,31 @@
+- name: Configure raspberry pis
+  hosts: raspberry_pi
+  become: true
+  tasks:
+    - name: Enable cgroup
+      shell: "grep -q 'cgroup_memory=1 cgroup_enable=memory' {{ cmdline_file_path }}"
+      register: grep_result
+      ignore_errors: yes
+
+    - block:
+        - ansible.builtin.slurp:
+            src: "{{ cmdline_file_path }}"
+          register: cmdline_file
+
+        - set_fact:
+            cmdline_file: "{{ cmdline_file['content'] | b64decode | replace('\n', '')}} cgroup_memory=1 cgroup_enable=memory"
+        
+        - ansible.builtin.file:
+            path: "{{ cmdline_file_path }}"
+            state: absent
+
+        - ansible.builtin.file:
+            path: "{{ cmdline_file_path }}"
+            state: touch
+
+        - ansible.builtin.lineinfile:
+            line: "{{ cmdline_file }}"
+            path: "{{ cmdline_file_path }}"
+
+        - ansible.builtin.reboot:
+      when: grep_result.rc == 1

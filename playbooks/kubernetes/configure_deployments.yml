@@ -12,29 +12,14 @@
     # - name: Deploy calcio config
     #   command: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/custom-resources.yaml
 
-    - name: Install helm
-      shell: "curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash"
-
-    - name: Apply secrets
-      command: "kubectl apply -f {{ kubernetes_config_repo }}/secrets.yaml"
-
-    - name: Deploy multus
-      shell: "cd {{ kubernetes_config_repo }}/multus/ && sh deploy.sh"
-
-    - name: Deploy multus
-      shell: "kubectl apply -f {{ kubernetes_config_repo }}/multus/network-definitions.yaml"
-
-    - name: Deploy NFS provisioner
-      shell: "sh {{ kubernetes_config_repo }}/nfs_provisioner/deploy.sh"
-
-    - name: Deploy prometheus
-      shell: "sh {{ kubernetes_config_repo }}/prometheus/deploy.sh"
-
     # - name: Deploy MetalLB
     #   command: "kubectl apply -f {{ kubernetes_config_repo }}/metallb/metallb-native.yaml"
     # - ansible.builtin.pause: 
     #     seconds: 30
     # - command: "kubectl apply -f {{ kubernetes_config_repo }}/metallb/custom_resources.yaml"
+
+    - name: Deploy prometheus
+      shell: "sh {{ kubernetes_config_repo }}/prometheus/deploy.sh"
 
     - name: Deploy pihole
       command: "kubectl apply -f {{ kubernetes_config_repo }}/pihole"

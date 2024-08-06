@@ -5,7 +5,7 @@
   tasks:
     - name: Install packages
       ansible.builtin.apt:
-        update_cache: true
+        #update_cache: true
         pkg:
           - nfs-common
           - vlan
@@ -14,114 +14,18 @@
           - iptables
           - docker
 
-- name: Setup Master 
-  hosts: master
-  become: true
-  tasks:
     - include_role:
         name: common/setup_vlan
       loop: "{{ vlan_ids }}"
 
-    - name: Mount the kubernetes
-      ansible.posix.mount:
-        path: /mnt/kubernetes
-        state: mounted
-        src: "{{ nfs_host }}:/mnt/user/kubernetes/"
-        opts: rw,sync,hard
-        fstype: nfs
+- name: Configure Master
+  import_playbook: configure_master.yml
 
-    - name: Install master if not already running
-      ansible.builtin.shell: "curl -sfL https://get.k3s.io | sh -s - \
-          --disable=servicelb"
+- name: Configure Master
+  import_playbook: configure_raspberry_pis.yml
 
-    # - name: Update certs
-    #   ansible.builtin.shell: "openssl s_client -connect 127.0.0.1:6443 -showcerts < /dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > cert.crt"
+- name: Configure Agents
+  import_playbook: configure_agents.yml
 
-
-    - name: Wait for config
-      ansible.builtin.wait_for:
-        path: /etc/rancher/k3s/k3s.yaml
-
-    - name: Copy config
-      ansible.builtin.copy: 
-        src: /etc/rancher/k3s/k3s.yaml
-        dest: /mnt/kubernetes/k3s.yaml
-        mode: '0644'
-        remote_src: true
-
-    - name: Edit config
-      ansible.builtin.replace:
-        path: /mnt/kubernetes/k3s.yaml
-        regexp: "https://127.0.0.1"
-        replace: "https://{{ ansible_host }}"
-
-    - name: Get node key
-      ansible.builtin.slurp:
-        src: /var/lib/rancher/k3s/server/node-token
-      register: node_key
-
-    - set_fact:
-        node_key: "{{ node_key.content | b64decode | replace('\n', '') }}"
-
-    - name: Get nodes status
-      ansible.builtin.command: kubectl get nodes --no-headers=true
-      register: _node_statuses
-
-    - set_fact:
-        _node_statuses: "{{ _node_statuses.stdout_lines }}"
-
-    - set_fact:
-        node_status: "{{node_status|default({}) | combine({ item|regex_search('^(\\w+)') : item|regex_search('(\\w*Ready)')}) }}"
-      loop: "{{ _node_statuses }}"
-          
-
-- name: Configure raspberry pis
-  hosts: raspberry_pi
-  become: true
-  tasks:
-    - name: Enable cgroup
-      shell: "grep -q 'cgroup_memory=1 cgroup_enable=memory' {{ cmdline_file_path }}"
-      register: grep_result
-      ignore_errors: yes
-
-    - block:
-        - ansible.builtin.slurp:
-            src: "{{ cmdline_file_path }}"
-          register: cmdline_file
-
-        - set_fact:
-            cmdline_file: "{{ cmdline_file['content'] | b64decode | replace('\n', '')}} cgroup_memory=1 cgroup_enable=memory"
-        
-        - ansible.builtin.file:
-            path: "{{ cmdline_file_path }}"
-            state: absent
-
-        - ansible.builtin.file:
-            path: "{{ cmdline_file_path }}"
-            state: touch
-
-        - ansible.builtin.lineinfile:
-            line: "{{ cmdline_file }}"
-            path: "{{ cmdline_file_path }}"
-
-        - ansible.builtin.reboot:
-      when: grep_result.rc == 1
-
-- name: Configure nodes
-  hosts: agents
-  become: true
-  tasks:
-    - include_role:
-        name: common/setup_vlan
-      loop: "{{ vlan_ids }}"
-
-    - name: Register agent
-      block:
-        - name: Remove the agent
-          shell: "/usr/local/bin/k3s-agent-uninstall.sh"
-          ignore_errors: yes
-        - name: Initialize the agent
-          shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars['kube']['ansible_host'] }}:6443 K3S_TOKEN={{ hostvars['kube']['node_key'] }} sh -"
-      when: hostvars['kube']['node_status'][inventory_hostname] is not defined or hostvars['kube']['node_status'][inventory_hostname] != 'Ready'
-
-- import_playbook: configure_deployments.yml
+- name: Configure Deployments
+  import_playbook: configure_deployments.yml
