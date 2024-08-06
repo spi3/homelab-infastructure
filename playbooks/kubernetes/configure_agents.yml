@@ -32,16 +32,6 @@
         - name: Remove the agent
           shell: "/usr/local/bin/k3s-agent-uninstall.sh"
           ignore_errors: yes
-        - name: Initialize the agent
-          shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars['kube']['ansible_host'] }}:6443 K3S_TOKEN={{ hostvars['kube']['node_key'] }} sh -"
-      
-        - name: Wait for CNI
-          ansible.builtin.wait_for:
-            path: /var/lib/rancher/k3s/agent/etc/cni/net.d
-
-        - name: Wait for CNI
-          ansible.builtin.wait_for:
-            path: /var/lib/rancher/k3s/data/current/bin
 
         - name: Creat CNI dirs
           ansible.builtin.file:
@@ -76,6 +66,17 @@
             src: /var/lib/rancher/k3s/data/current/bin
             state: link
             force: true
+      
+        - name: Initialize the agent
+          shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars['kube']['ansible_host'] }}:6443 K3S_TOKEN={{ hostvars['kube']['node_key'] }} sh -"
+      
+        - name: Wait for CNI
+          ansible.builtin.wait_for:
+            path: /var/lib/rancher/k3s/agent/etc/cni/net.d
+
+        - name: Wait for CNI
+          ansible.builtin.wait_for:
+            path: /var/lib/rancher/k3s/data/current/bin
 
         - name: Wait for cni dir
           ansible.builtin.wait_for:
