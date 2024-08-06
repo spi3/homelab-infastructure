@@ -1,0 +1,20 @@
+- name: Configure master
+  hosts: cluster
+  become: true
+  tasks:
+    - name: Delete rules
+      command: "ip rule del from {{ vlans[item].vlan_subnet }} lookup vlan{{ item }}"
+      loop: "{{ vlan_ids }}"
+      ignore_errors: true
+
+    - name: Delete routes
+      command: "ip route flush table vlan{{ item }}"
+      loop: "{{ vlan_ids }}"
+      ignore_errors: true
+
+    - name: Delete table
+      ansible.builtin.file:
+        path: "/etc/iproute2/rt_tables.d/vlan{{ item }}.conf"
+        state: absent
+      loop: "{{ vlan_ids }}"
+      ignore_errors: true

@@ -8,3 +8,17 @@ nfs_host: 10.0.0.2
 mariadb_host: 10.10.10.102
 
 kubernetes_config_repo: "/mnt/kubernetes/Kubernetes-Configs"
+
+vlans:
+  4:
+    vlan_name: services
+    vlan_subnet: 10.10.10.0/24
+    vlan_gateway: 10.10.10.1
+  6:
+    vlan_name: exposed_services
+    vlan_subnet: 10.101.101.0/24
+    vlan_gateway: 10.101.101.1
+  7:
+    vlan_name: teamspeak
+    vlan_subnet: 10.132.132.0/24
+    vlan_gateway: 10.132.132.1
