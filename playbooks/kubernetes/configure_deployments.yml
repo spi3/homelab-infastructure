@@ -2,39 +2,6 @@
   hosts: master
   become: true
   tasks: 
-    # - name: Deploy cert manager
-    #   shell: "sh {{ kubernetes_config_repo }}/cert-manager/deploy.sh"
-    # - command: "kubectl apply -f {{ kubernetes_config_repo }}/cert-manager/issuer.yaml"
-
-    # - name: Deploy MetalLB
-    #   command: "kubectl apply -f {{ kubernetes_config_repo }}/metallb/metallb-native.yaml"
-    # - ansible.builtin.pause: 
-    #     seconds: 30
-    # - command: "kubectl apply -f {{ kubernetes_config_repo }}/metallb/custom_resources.yaml"
-
-    - name: Deploy prometheus
-      shell: "sh {{ kubernetes_config_repo }}/prometheus/deploy.sh"
-
-    - name: Deploy pihole
-      command: "kubectl apply -f {{ kubernetes_config_repo }}/pihole"
-
-    - name: Deploy dashy
-      command: "kubectl apply -f {{ kubernetes_config_repo }}/dashy"
-
-    - name: Deploy cloudflare_tunnel
-      command: "kubectl apply -f {{ kubernetes_config_repo }}/cloudflare_tunnel"
-
-    - name: Deploy duckdns
-      command: "kubectl apply -f {{ kubernetes_config_repo }}/duckdns"
-
-    - name: Deploy teamspeak
-      command: "kubectl apply -f {{ kubernetes_config_repo }}/teamspeak"
-
-    # - name: Deploy uptime kuma
-    #   command: "kubectl apply -f {{ kubernetes_config_repo }}/uptimekuma"
-
-    - name: Deploy gitea
-      command: "kubectl apply -f {{ kubernetes_config_repo }}/gitea"
-
-    - name: Deploy home assistant
-      command: "kubectl apply -f {{ kubernetes_config_repo }}/home_assistant"
+    - name: "Deploy {{ item.name }}"
+      command: "{{ item.command }}"
+      loop: "{{ deployments }}"
