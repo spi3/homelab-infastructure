@@ -7,3 +7,4 @@ ansible_become_pass: "{{ master_pw }}"
 vlan_ids:
   - 4
   - 6
+  - 7

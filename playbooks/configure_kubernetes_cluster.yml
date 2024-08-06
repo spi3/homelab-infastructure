@@ -55,6 +55,15 @@
             path: /boot/cmdline.txt
       when: grep_result.rc == 1
 
+# - name: Configure master
+#   hosts: kubernetes_master
+#   become: true
+#   tasks:
+#     - include_role:
+#         name: common/setup_vlan
+#       loop: "{{ vlan_ids }}"
+
+
 - name: Configure nodes
   hosts: kubernetes_agents
   become: true
@@ -63,9 +72,9 @@
       ansible.builtin.apt:
         update_cache: true
         pkg:
-          - network-manager
           - nfs-common
           - vlan
+          - net-tools
       
     - include_role:
         name: common/setup_vlan
