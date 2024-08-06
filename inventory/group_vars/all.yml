@@ -8,7 +8,7 @@ manual_interfaces: false
 
 nfs_host: 10.0.0.2
 mariadb_host: 10.10.10.102
-default_gateway: 10.0.0.1
+default_gateway: 10.122.122.1
 netmask: 255.255.255.0
 default_dns1: 9.9.9.9
 default_dns2: 8.8.8.8

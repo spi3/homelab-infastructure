@@ -17,9 +17,11 @@
       prompt: What should the hostname be?
       private: false
   tasks:
-    - ansible.builtin.apt:
-        update_cache: true
-        upgrade: full
+    # - ansible.builtin.apt:
+    #     update_cache: true
+    #     upgrade: full
+    # - reboot:
+
     - ansible.builtin.apt:
         pkg:
           - vim
@@ -29,9 +31,7 @@
           - net-tools
           - nfs-common
           - resolvconf
-
-    - reboot:
-          
+      
     - community.general.modprobe:
         name: 8021q
         state: present
