@@ -1,5 +1,5 @@
 - name: Uninstall agents
-  hosts: kubernetes_agents
+  hosts: agents
   become: true
   tasks: 
     - name: Uninstall agent
@@ -7,9 +7,14 @@
       ignore_errors: true
 
 - name: Uninstall master
-  hosts: kubernetes_master
+  hosts: master
   become: true
   tasks:
     - name: Uninstall master
       command: /usr/local/bin/k3s-uninstall.sh
       ignore_errors: true
+
+    - name: Remove old configs
+      ansible.builtin.file:
+        path: /etc/rancher/k3s/
+        state: absent

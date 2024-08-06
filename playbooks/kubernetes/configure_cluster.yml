@@ -1,19 +1,17 @@
 ---
 
 - name: Get info from master
-  hosts: kubernetes_master
+  hosts: master
+  become: true
   tasks:
     - name: Install master if not already running
-      become: true
       ansible.builtin.shell: "curl -sfL https://get.k3s.io | sh -s - \
-          --flannel-backend=none \
-          --cluster-cidr=10.200.0.0/16 \
-          --disable-network-policy \
-          --disable=traefik \
           --disable=servicelb"
 
+    - name: Update certs
+      ansible.builtin.shell: "openssl s_client -connect 127.0.0.1:6443 -showcerts < /dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > cert.crt"
+
     - name: Copy config
-      become: true
       ansible.builtin.copy: 
         src: /etc/rancher/k3s/k3s.yaml
         dest: /mnt/kubernetes
@@ -27,7 +25,6 @@
         replace: "https://{{ ansible_host }}"
 
     - name: Get node key
-      become: true
       ansible.builtin.slurp:
         src: /var/lib/rancher/k3s/server/node-token
       register: node_key
@@ -36,7 +33,6 @@
         node_key: "{{ node_key.content | b64decode | replace('\n', '') }}"
 
     - name: Get nodes status
-      become: true
       ansible.builtin.command: kubectl get nodes --no-headers=true
       register: _node_statuses
 
@@ -79,7 +75,7 @@
       when: grep_result.rc == 1
 
 # - name: Configure master
-#   hosts: kubernetes_master
+#   hosts: master
 #   become: true
 #   tasks:
 #     - include_role:
@@ -88,7 +84,7 @@
 
 
 - name: Configure nodes
-  hosts: kubernetes_agents
+  hosts: agents
   become: true
   tasks:
     - name: Install packages
@@ -111,39 +107,12 @@
       - name: Initialize the agent
         shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars['kube']['ansible_host'] }}:6443 K3S_TOKEN={{ hostvars['kube']['node_key'] }} sh -"
       when: hostvars['kube']['node_status'][inventory_hostname] is not defined or hostvars['kube']['node_status'][inventory_hostname] != 'Ready'
-    
-- name: Configure deployments
-  hosts: kubernetes_master
+
+- name: Login to docker
+  hosts: cluster
   become: true
-  tasks: 
-    - name: Deploy calcio 
-      command: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml
-    
-    - name: Deploy calcio config
-      command: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/custom-resources.yaml
+  tasks:
+    - name: Login to docker
+      command: "docker login -u {{ docker_user }} -p {{ docker_key }}"
 
-    - name: Apply secrets
-      command: "kubectl apply -f {{ kubernetes_config_repo }}/secrets.yaml"
-
-    - name: Deploy NFS provisioner
-      shell: "sh {{ kubernetes_config_repo }}/nfs_provisioner/deploy.sh"
-    - name: Deploy NFS provisioner
-      command: "kubectl apply -f {{ kubernetes_config_repo }}/nfs_provisioner/storage_class.yaml"
-
-    - name: Deploy MetalLB
-      command: "kubectl apply -f {{ kubernetes_config_repo }}/metallb/metallb-native.yaml"
-    - ansible.builtin.pause: 
-        seconds: 5
-    - command: "kubectl apply -f {{ kubernetes_config_repo }}/metallb/custom_resources.yaml"
-
-    - name: Deploy pihole
-      command: "kubectl apply -f {{ kubernetes_config_repo }}/pihole"
-
-    - name: Deploy dashy
-      command: "kubectl apply -f {{ kubernetes_config_repo }}/dashy"
-
-    - name: Deploy cloudflare_tunnel
-      command: "kubectl apply -f {{ kubernetes_config_repo }}/cloudflare_tunnel"
-
-    - name: Deploy duckdns
-      command: "kubectl apply -f {{ kubernetes_config_repo }}/duckdns"
+- import_playbook: configure_deployments.yml

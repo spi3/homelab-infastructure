@@ -1,0 +1,40 @@
+- name: Configure deployments
+  hosts: master
+  become: true
+  tasks: 
+    # - name: Deploy cert manager
+    #   shell: "sh {{ kubernetes_config_repo }}/cert-manager/deploy.sh"
+    # - command: "kubectl apply -f {{ kubernetes_config_repo }}/cert-manager/issuer.yaml"
+
+    # - name: Deploy calcio 
+    #   command: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml
+    
+    # - name: Deploy calcio config
+    #   command: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/custom-resources.yaml
+
+    - name: Apply secrets
+      command: "kubectl apply -f {{ kubernetes_config_repo }}/secrets.yaml"
+
+    - name: Deploy NFS provisioner
+      shell: "sh {{ kubernetes_config_repo }}/nfs_provisioner/deploy.sh"
+
+    - name: Deploy prometheus
+      shell: "sh {{ kubernetes_config_repo }}/prometheus/deploy.sh"
+
+    - name: Deploy MetalLB
+      command: "kubectl apply -f {{ kubernetes_config_repo }}/metallb/metallb-native.yaml"
+    - ansible.builtin.pause: 
+        seconds: 30
+    - command: "kubectl apply -f {{ kubernetes_config_repo }}/metallb/custom_resources.yaml"
+
+    - name: Deploy pihole
+      command: "kubectl apply -f {{ kubernetes_config_repo }}/pihole"
+
+    - name: Deploy dashy
+      command: "kubectl apply -f {{ kubernetes_config_repo }}/dashy"
+
+    - name: Deploy cloudflare_tunnel
+      command: "kubectl apply -f {{ kubernetes_config_repo }}/cloudflare_tunnel"
+
+    - name: Deploy duckdns
+      command: "kubectl apply -f {{ kubernetes_config_repo }}/duckdns"

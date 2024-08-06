@@ -1,0 +1,17 @@
+- name: Install docker services
+  hosts: master
+  become: true
+  tasks:
+    - name: Install swarmpit
+      community.docker.docker_container:
+        name: swarmpit-installer
+        image: swarmpit/install:edge
+        state: started
+        volumes: 
+          - /var/run/docker.sock:/var/run/docker.sock
+        env:
+          INTERACTIVE: "0"
+          STACK_NAME: "swarmpit"
+          APP_PORT: "888"
+        auto_remove: true
+  

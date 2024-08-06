@@ -1,0 +1,2 @@
+- import_playbook: destroy_swarm.yml
+- import_playbook: configure_docker_swarm.yml

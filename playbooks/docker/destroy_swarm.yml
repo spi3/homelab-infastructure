@@ -1,0 +1,15 @@
+---
+- name: Uninstall swarm
+  hosts: agents
+  become: true
+  tasks:
+    - name: Leave docker swarm
+      shell: docker swarm leave
+
+- name: Uninstall swarm
+  hosts: master
+  become: true
+  tasks:
+    - name: Leave docker swarm
+      shell: docker swarm leave --force
+

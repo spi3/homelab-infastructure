@@ -1,0 +1,7 @@
+- name: Reboot hosts
+  hosts: cluster
+  become: true
+  tasks: 
+    - lineinfile:
+        path: /etc/hosts
+        line: "127.0.0.1 {{ inventory_hostname }}"
