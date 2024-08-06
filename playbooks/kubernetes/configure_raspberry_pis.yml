@@ -20,7 +20,7 @@
           - python3-requests
 
     - name: Disable swap
-      command: "dphys-swapfile swapoff && dphys-swapfile uninstall && update-rc.d dphys-swapfile remove && apt purge dphys-swapfile -y && sysctl -w vm.swappiness=0"
+      shell: "dphys-swapfile swapoff && dphys-swapfile uninstall && update-rc.d dphys-swapfile remove && apt purge dphys-swapfile -y && sysctl -w vm.swappiness=0"
       ignore_errors: true
 
     - name: Git checkout RPi reporter
