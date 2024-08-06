@@ -1,31 +1,75 @@
 - name: Configure raspberry pis
   hosts: raspberry_pi
   become: true
+  roles:
+    - role: prereq
+    - role: raspberrypi
   tasks:
-    - name: Enable cgroup
-      shell: "grep -q 'cgroup_memory=1 cgroup_enable=memory' {{ cmdline_file_path }}"
-      register: grep_result
-      ignore_errors: yes
+    - name: Install packages
+      ansible.builtin.apt:
+        pkg:
+          - git
+          - python3
+          - python3-pip
+          - python3-tzlocal
+          - python3-sdnotify
+          - python3-colorama
+          - python3-unidecode
+          - python3-apt
+          - python3-paho-mqtt
+          - python3-requests
 
-    - block:
-        - ansible.builtin.slurp:
-            src: "{{ cmdline_file_path }}"
-          register: cmdline_file
+    - name: Git checkout RPi reporter
+      ansible.builtin.git:
+        repo: https://github.com/ironsheep/RPi-Reporter-MQTT2HA-Daemon.git
+        dest: /opt/RPi-Reporter-MQTT2HA-Daemon
+        version: v1.8.5
 
-        - set_fact:
-            cmdline_file: "{{ cmdline_file['content'] | b64decode | replace('\n', '')}} cgroup_memory=1 cgroup_enable=memory"
-        
-        - ansible.builtin.file:
-            path: "{{ cmdline_file_path }}"
-            state: absent
+    - name: Install Rpi reporter
+      shell: "cd /opt/RPi-Reporter-MQTT2HA-Daemon && pip3 install -r requirements.txt --break-system-packages"
 
-        - ansible.builtin.file:
-            path: "{{ cmdline_file_path }}"
-            state: touch
+    - name: Create config if required
+      stat:
+        path: /opt/RPi-Reporter-MQTT2HA-Daemon/config.ini
+      register: stat_result
 
-        - ansible.builtin.lineinfile:
-            line: "{{ cmdline_file }}"
-            path: "{{ cmdline_file_path }}"
+    - name: Copy config
+      when: not stat_result.stat.exists
+      command: cp /opt/RPi-Reporter-MQTT2HA-Daemon/config.ini.dist /opt/RPi-Reporter-MQTT2HA-Daemon/config.ini
 
-        - ansible.builtin.reboot:
-      when: grep_result.rc == 1
+    - name: Modify hostname
+      ansible.builtin.lineinfile:
+        path: /opt/RPi-Reporter-MQTT2HA-Daemon/config.ini
+        regexp: ^#hostname = .*
+        line: "hostname = {{ mqtt_host }}"
+
+    - name: Modify username
+      ansible.builtin.lineinfile:
+        path: /opt/RPi-Reporter-MQTT2HA-Daemon/config.ini
+        regexp: ^#username = .*
+        line: "username = {{ mqtt_user }}"
+
+    - name: Modify config
+      ansible.builtin.lineinfile:
+        path: /opt/RPi-Reporter-MQTT2HA-Daemon/config.ini
+        regexp: ^#password = .*
+        line: "password = {{ mqtt_pass }}"
+
+    - name: Add user to video group
+      ansible.builtin.user:
+        name: daemon
+        groups: 
+          - daemon
+          - video
+
+    - name: Symlink service file
+      ansible.builtin.file:
+        src: /opt/RPi-Reporter-MQTT2HA-Daemon/isp-rpi-reporter.service
+        dest: /etc/systemd/system/isp-rpi-reporter.service
+        state: link
+
+    - name: Enable the service
+      ansible.builtin.service:
+        name: isp-rpi-reporter
+        state: restarted
+        enabled: true
