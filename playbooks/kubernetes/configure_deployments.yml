@@ -35,3 +35,6 @@
 
     - name: Deploy gitea
       command: "kubectl apply -f {{ kubernetes_config_repo }}/gitea"
+
+    - name: Deploy home assistant
+      command: "kubectl apply -f {{ kubernetes_config_repo }}/home_assistant"
