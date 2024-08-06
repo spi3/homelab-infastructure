@@ -1,0 +1,14 @@
+---
+- name: Set VLAN ID
+  set_fact:
+    vlan_id: "{{ item }}"
+
+- name: Copy template
+  ansible.builtin.template:
+    src: vlan.sh.j2
+    dest: "/etc/network/interfaces.d/vlan{{ vlan_id }}.sh"
+    mode: 0640
+
+- name: Enable VLANs
+  become: true
+  ansible.builtin.command: ifup -a
