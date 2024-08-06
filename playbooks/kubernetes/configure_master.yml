@@ -15,15 +15,15 @@
         opts: rw,sync,hard
         fstype: nfs
 
-    - name: Delete old cni conf
-      ansible.builtin.file: 
-        path: /etc/cni/net.d
-        state: absent
+    # - name: Delete old cni conf
+    #   ansible.builtin.file: 
+    #     path: /etc/cni/net.d
+    #     state: absent
 
-    - name: Delete old cni bin
-      ansible.builtin.file: 
-        path: /opt/cni/bin
-        state: absent
+    # - name: Delete old cni bin
+    #   ansible.builtin.file: 
+    #     path: /opt/cni/bin
+    #     state: absent
 
     - name: Create CNI link
       ansible.builtin.file:

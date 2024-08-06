@@ -1,8 +1,5 @@
 source /etc/network/interfaces.d/*
 
-{% if manual_interfaces %}
-iface eth0 inet manual
-{% else %}
 auto eth0
 iface eth0 inet static
 {% if assign_ip %}
@@ -14,5 +11,3 @@ iface eth0 inet static
   gateway {{ default_gateway }}
   dns-nameserver {{ default_dns1 }} 
   dns-nameserver {{ default_dns2 }}
-{% endif %}
-  
